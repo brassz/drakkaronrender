@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Notification, useNotification } from "@/components/notification"
+import { useRealtimeMultipleTables } from "@/hooks/useRealtimeData"
 
 interface EnginePackage {
   id: number
@@ -266,6 +267,24 @@ export default function NewBoatPage() {
     setLang(savedLang)
     loadDealerConfig()
   }, [])
+
+  // Escutar mudanças em tempo real nas tabelas de configuração
+  useRealtimeMultipleTables(
+    [
+      'engine_packages',
+      'hull_colors',
+      'upholstery_packages', 
+      'additional_options',
+      'boat_models',
+      'dealer_pricing'
+    ],
+    () => {
+      // Recarregar configurações quando houver mudanças
+      console.log('Realtime update detected in dealer config, reloading...')
+      loadDealerConfig()
+    },
+    true
+  )
 
   useEffect(() => {
     if (formData.boat_model && config.enginePackages.length > 0) {

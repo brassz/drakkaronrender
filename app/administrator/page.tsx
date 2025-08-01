@@ -9,6 +9,7 @@ import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import type { MarketingManual, MarketingWarranty } from "@/lib/database-service"
+import { useRealtimeMultipleTables } from "@/hooks/useRealtimeData"
 
 interface DataItem {
   name: string
@@ -834,6 +835,32 @@ export default function AdministratorPage() {
     }
   }, [isLoggedIn])
 
+  // Escutar mudanças em tempo real em todas as tabelas relevantes
+  useRealtimeMultipleTables(
+    [
+      'engine_packages',
+      'hull_colors', 
+      'upholstery_packages',
+      'additional_options',
+      'boat_models',
+      'dealers',
+      'orders',
+      'service_requests',
+      'marketing_content',
+      'marketing_manuals',
+      'marketing_warranties',
+      'factory_production'
+    ],
+    () => {
+      // Recarregar dados quando houver qualquer mudança
+      if (isLoggedIn) {
+        console.log('Realtime update detected, reloading data...')
+        loadDataFromDatabase()
+      }
+    },
+    isLoggedIn // Só ativa o realtime quando estiver logado
+  )
+
   const handleLogin = async () => {
     try {
       const response = await fetch("/api/admin-auth", {
@@ -1101,9 +1128,18 @@ export default function AdministratorPage() {
       const result = await response.json()
 
       if (result.success) {
-        showNotification("✅ Dados salvos no banco de dados com sucesso! Os dealers precisarão atualizar suas páginas para ver as mudanças.", "success")
+        showNotification("✅ Dados salvos no banco de dados com sucesso! As mudanças serão refletidas automaticamente em tempo real.", "success")
         // Reload data from database to get the IDs of newly created items
         await loadDataFromDatabase()
+        
+        // Força a invalidação do cache do navegador
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            names.forEach(name => {
+              caches.delete(name)
+            })
+          })
+        }
       } else {
         showNotification("❌ Erro ao salvar: " + result.error, "error")
       }

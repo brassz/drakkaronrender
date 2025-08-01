@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Download, Copy } from "lucide-react" // Import Download and Copy icons
 import { Button } from "@/components/ui/button" // Import Button component
+import { useRealtimeMultipleTables } from "@/hooks/useRealtimeData"
 
 interface MarketingContent {
   id: number
@@ -31,6 +32,16 @@ export default function MarketingContentPage() {
     setLang(savedLang)
     loadContent()
   }, [])
+
+  // Escutar mudanças em tempo real no conteúdo de marketing
+  useRealtimeMultipleTables(
+    ['marketing_content'],
+    () => {
+      console.log('Realtime update detected in marketing content, reloading...')
+      loadContent()
+    },
+    true
+  )
 
   const translations = {
     pt: {
