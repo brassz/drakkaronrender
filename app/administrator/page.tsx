@@ -176,6 +176,7 @@ export default function AdministratorPage() {
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const statusOptions = [
     { value: "pending", label: "Pendente" },
@@ -1079,7 +1080,12 @@ export default function AdministratorPage() {
       setIsLoading(true)
       const response = await fetch("/api/save-admin-data", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        cache: 'no-store',
+        headers: { 
+          "Content-Type": "application/json",
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
         body: JSON.stringify({
           enginePackages,
           hullColors,
@@ -1096,6 +1102,8 @@ export default function AdministratorPage() {
 
       if (result.success) {
         showNotification("✅ Dados salvos no banco de dados com sucesso! Os dealers precisarão atualizar suas páginas para ver as mudanças.", "success")
+        // Add a small delay to ensure database has processed the changes
+        await new Promise(resolve => setTimeout(resolve, 500))
         // Reload data from database to get the IDs of newly created items
         await loadDataFromDatabase()
       } else {
@@ -1116,7 +1124,12 @@ export default function AdministratorPage() {
           try {
             const response = await fetch("/api/marketing-content", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              cache: 'no-store',
+              headers: { 
+                "Content-Type": "application/json",
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+              },
               body: JSON.stringify({
                 ...content,
                 title_en: content.title_en?.trim() || content.title_pt?.trim() || "",
@@ -1148,7 +1161,12 @@ export default function AdministratorPage() {
           try {
             await fetch("/api/marketing-manuals", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              cache: 'no-store',
+              headers: { 
+                "Content-Type": "application/json",
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+              },
               body: JSON.stringify(manual),
             })
           } catch (error) {
@@ -1165,7 +1183,12 @@ export default function AdministratorPage() {
           try {
             await fetch("/api/marketing-warranties", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              cache: 'no-store',
+              headers: { 
+                "Content-Type": "application/json",
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+              },
               body: JSON.stringify(warranty),
             })
           } catch (error) {
@@ -1182,7 +1205,12 @@ export default function AdministratorPage() {
           try {
             await fetch("/api/factory-production", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              cache: 'no-store',
+              headers: { 
+                "Content-Type": "application/json",
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+              },
               body: JSON.stringify(item),
             })
           } catch (error) {
@@ -1822,7 +1850,13 @@ export default function AdministratorPage() {
   const loadDataFromDatabase = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch("/api/get-admin-data")
+      const response = await fetch(`/api/get-admin-data?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
 
       if (!response.ok) {
         const fallbackText = await response.text()
@@ -1846,6 +1880,7 @@ export default function AdministratorPage() {
 
       if (result.success) {
         const { data } = result
+        console.log('Loading data from database:', data)
         setEnginePackages(data.enginePackages || [])
         setHullColors(data.hullColors || [])
         setUpholsteryPackages(data.upholsteryPackages || [])
@@ -1876,6 +1911,9 @@ export default function AdministratorPage() {
         // Add this to the loadDataFromDatabase function
         setFactoryProduction(data.factoryProduction || [])
 
+        // Force re-render by updating refresh key
+        setRefreshKey(prev => prev + 1)
+        
         showNotification("✅ Dados carregados do banco de dados!", "success")
       } else {
         showNotification(`❌ Erro ao carregar dados: ${result.error}`, "error")
@@ -2078,7 +2116,13 @@ export default function AdministratorPage() {
 
   const refreshFactoryProduction = async () => {
     try {
-      const response = await fetch("/api/factory-production")
+      const response = await fetch("/api/factory-production", {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
       const result = await response.json()
 
       if (result.success) {
@@ -2207,7 +2251,7 @@ export default function AdministratorPage() {
         )}
 
         {!isLoading && (
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div key={refreshKey} className="bg-white p-6 rounded-lg shadow">
             {activeTab === "engines" && renderTable(enginePackages, "engines")}
             {activeTab === "hulls" && renderTable(hullColors, "hulls")}
             {activeTab === "upholstery" && renderTable(upholsteryPackages, "upholstery")}
