@@ -5,6 +5,9 @@ import Image from "next/image"
 import Link from "next/link"
 import { Notification, useNotification } from "@/components/notification"
 
+// Route segment configuration to disable static generation
+export const dynamic = 'force-dynamic'
+
 export default function DealerDashboard() {
   const [lang, setLang] = useState("pt")
   const [showPasswordModal, setShowPasswordModal] = useState(false)

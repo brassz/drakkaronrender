@@ -1,5 +1,8 @@
 "use client"
 
+// Route segment configuration to disable static generation
+export const dynamic = 'force-dynamic'
+
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"

@@ -4,6 +4,9 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 
+// Route segment configuration to disable static generation for all dealer routes
+export const dynamic = 'force-dynamic'
+
 export default function DealerLayout({
   children,
 }: {

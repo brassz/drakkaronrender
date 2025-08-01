@@ -5,6 +5,9 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
 
+// Route segment configuration to disable static generation
+export const dynamic = 'force-dynamic'
+
 export default function DealerLoginPage() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")

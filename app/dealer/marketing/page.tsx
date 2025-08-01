@@ -4,6 +4,9 @@ import Link from "next/link"
 import { ArrowLeft, FileText, Shield, ImageIcon } from "lucide-react"
 import { useState, useEffect } from "react"
 
+// Route segment configuration to disable static generation
+export const dynamic = 'force-dynamic'
+
 export default function MarketingPage() {
   const [selectedLang, setSelectedLang] = useState("pt") // Default to Portuguese
 
