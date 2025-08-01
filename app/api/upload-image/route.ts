@@ -1,5 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { put } from "@vercel/blob"
+import { v2 as cloudinary } from "cloudinary"
+
+// Configurar Cloudinary (alternativa gratuita ao Vercel Blob)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,21 +34,35 @@ export async function POST(request: NextRequest) {
     const filename = `marketing-content/${timestamp}-${randomString}.${fileExtension}`
 
     try {
-      // Upload to Vercel Blob with retry logic
-      const blob = await put(filename, file, {
-        access: "public",
-      })
+      // Convert file to buffer
+      const bytes = await file.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+
+      // Upload to Cloudinary with retry logic
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: "auto",
+            folder: "marketing-content",
+            public_id: `${timestamp}-${randomString}`,
+          },
+          (error, result) => {
+            if (error) reject(error)
+            else resolve(result)
+          }
+        ).end(buffer)
+      }) as any
 
       return NextResponse.json({
         success: true,
-        url: blob.url,
+        url: result.secure_url,
         filename: filename,
       })
-    } catch (blobError: any) {
-      console.error("Vercel Blob error:", blobError)
+    } catch (uploadError: any) {
+      console.error("Cloudinary upload error:", uploadError)
 
-      // Handle specific Vercel Blob errors
-      if (blobError.message?.includes("rate limit") || blobError.message?.includes("Too Many")) {
+      // Handle specific Cloudinary errors
+      if (uploadError.message?.includes("rate limit") || uploadError.message?.includes("Too Many")) {
         return NextResponse.json(
           {
             success: false,
@@ -51,7 +72,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      if (blobError.message?.includes("quota") || blobError.message?.includes("storage")) {
+      if (uploadError.message?.includes("quota") || uploadError.message?.includes("storage")) {
         return NextResponse.json(
           {
             success: false,
@@ -64,7 +85,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: `Upload failed: ${blobError.message || "Unknown error"}`,
+          error: `Upload failed: ${uploadError.message || "Unknown error"}`,
         },
         { status: 500 },
       )
