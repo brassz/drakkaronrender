@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Notification, useNotification } from "@/components/notification"
+import { CACHE_CONFIG } from "@/lib/cache-config"
 
 interface BoatInventory {
   id?: number
@@ -260,6 +261,26 @@ export default function InventoryPage() {
     const savedLang = localStorage.getItem("selectedLang") || "pt"
     setLang(savedLang)
     loadData()
+    
+    // Set up auto-refresh to get updated data every 30 seconds
+    const refreshInterval = setInterval(() => {
+      loadConfig() // Only refresh config data, not inventory to avoid disrupting user edits
+    }, 30000) // 30 seconds
+    
+    // Listen for admin data updates from other tabs/admin panel
+    const handleStorageChange = (e: StorageEvent) => {
+      if (Object.values(CACHE_CONFIG.STORAGE_EVENTS).includes(e.key as string)) {
+        console.log(`Data updated via storage event: ${e.key}, refreshing config...`)
+        loadConfig()
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
+    return () => {
+      clearInterval(refreshInterval)
+      window.removeEventListener('storage', handleStorageChange)
+    }
   }, [])
 
   const loadData = async () => {
@@ -291,7 +312,8 @@ export default function InventoryPage() {
 
   const loadConfig = async () => {
     try {
-      const response = await fetch("/api/get-admin-data")
+      // Use centralized cache configuration
+      const response = await CACHE_CONFIG.fetchWithNoCache('/api/get-admin-data')
       const data = await response.json()
       if (data.success) {
         setBoatModels(data.data.boatModels || [])

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { CACHE_CONFIG } from "@/lib/cache-config"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -94,20 +95,20 @@ export async function GET() {
       },
     })
 
-    // Add no-cache headers to ensure fresh data
-    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-    response.headers.set('Pragma', 'no-cache')
-    response.headers.set('Expires', '0')
+    // Apply centralized no-cache headers
+    Object.entries(CACHE_CONFIG.NO_CACHE_HEADERS).forEach(([key, value]) => {
+      response.headers.set(key, value)
+    })
 
     return response
   } catch (error) {
     console.error("Error in get-admin-data:", error)
     const errorResponse = NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
     
-    // Add no-cache headers to error responses too
-    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-    errorResponse.headers.set('Pragma', 'no-cache')
-    errorResponse.headers.set('Expires', '0')
+    // Apply centralized no-cache headers to error responses too
+    Object.entries(CACHE_CONFIG.NO_CACHE_HEADERS).forEach(([key, value]) => {
+      errorResponse.headers.set(key, value)
+    })
     
     return errorResponse
   }

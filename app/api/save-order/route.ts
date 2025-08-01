@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -106,11 +107,24 @@ export async function POST(request: Request) {
       console.warn("⚠️ Erro ao enviar notificação:", emailError)
     }
 
-    return NextResponse.json({
+    // Revalidate paths to ensure fresh data
+    revalidatePath('/administrator')
+    revalidatePath('/dealer')
+    revalidateTag('admin-data')
+    revalidateTag('orders')
+
+    const response = NextResponse.json({
       success: true,
       data: orderResult,
       message: "Pedido criado com sucesso!",
     })
+    
+    // Add no-cache headers
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
+    return response
   } catch (error) {
     console.error("❌ Erro interno:", error)
     return NextResponse.json({ success: false, error: "Erro interno do servidor" }, { status: 500 })
