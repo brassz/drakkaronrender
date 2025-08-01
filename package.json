@@ -6,7 +6,10 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "db:verify": "tsx scripts/verify-data-persistence.ts",
+    "db:backup": "tsx scripts/backup-database.ts",
+    "db:test": "tsx scripts/verify-data-persistence.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.66",
