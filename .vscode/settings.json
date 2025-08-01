@@ -1,0 +1,12 @@
+{
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.automationProfile.linux": {
+        "path": "/usr/bin/bash",
+        "args": ["-l"]
+    },
+    "terminal.integrated.shellIntegration.enabled": true,
+    "terminal.integrated.commandsToSkipShell": [],
+    "terminal.integrated.allowChords": false,
+    "terminal.integrated.confirmOnExit": "never",
+    "terminal.integrated.enableBell": false
+}
