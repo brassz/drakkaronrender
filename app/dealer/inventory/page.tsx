@@ -291,7 +291,13 @@ export default function InventoryPage() {
 
   const loadConfig = async () => {
     try {
-      const response = await fetch("/api/get-admin-data")
+      const timestamp = new Date().getTime()
+      const response = await fetch(`/api/get-admin-data?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
       const data = await response.json()
       if (data.success) {
         setBoatModels(data.data.boatModels || [])

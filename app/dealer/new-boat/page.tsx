@@ -331,7 +331,14 @@ export default function NewBoatPage() {
   const loadDealerConfig = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/get-dealer-config")
+      // Adicionar timestamp para evitar cache
+      const timestamp = new Date().getTime()
+      const response = await fetch(`/api/get-dealer-config?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
       const result = await response.json()
 
       if (result.success) {

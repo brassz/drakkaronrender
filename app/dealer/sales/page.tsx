@@ -156,7 +156,13 @@ export default function SalesPage() {
       setLoading(true)
 
       // Carregar itens de custo das tabelas principais (dados globais)
-      const configResponse = await fetch("/api/get-dealer-config")
+      const timestamp = new Date().getTime()
+      const configResponse = await fetch(`/api/get-dealer-config?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
       const configResult = await configResponse.json()
 
       if (configResult.success) {

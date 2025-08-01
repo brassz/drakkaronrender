@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
+// Força modo dinâmico para evitar cache
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function GET(request: Request) {
@@ -73,7 +77,11 @@ export async function GET(request: Request) {
     }
 
     // Buscar modelos de barco
-    const { data: boatModels, error: boatError } = await supabase.from("boat_models").select("*").order("name")
+    const { data: boatModels, error: boatError } = await supabase
+      .from("boat_models")
+      .select("*")
+      .order("display_order", { ascending: true, nullsFirst: false })
+      .order("name")
 
     if (boatError) {
       console.error("Erro ao buscar modelos de barco:", boatError)
@@ -84,6 +92,7 @@ export async function GET(request: Request) {
     const { data: enginePackages, error: engineError } = await supabase
       .from("engine_packages")
       .select("*")
+      .order("display_order", { ascending: true, nullsFirst: false })
       .order("name")
 
     if (engineError) {
@@ -122,7 +131,11 @@ export async function GET(request: Request) {
     console.log("- Total de pacotes após filtro:", filteredEnginePackages.length)
 
     // Buscar cores de casco
-    const { data: hullColors, error: hullError } = await supabase.from("hull_colors").select("*").order("name")
+    const { data: hullColors, error: hullError } = await supabase
+      .from("hull_colors")
+      .select("*")
+      .order("display_order", { ascending: true, nullsFirst: false })
+      .order("name")
 
     if (hullError) {
       console.error("Erro ao buscar cores de casco:", hullError)
@@ -133,6 +146,7 @@ export async function GET(request: Request) {
     const { data: upholsteryPackages, error: upholsteryError } = await supabase
       .from("upholstery_packages")
       .select("*")
+      .order("display_order", { ascending: true, nullsFirst: false })
       .order("name")
 
     if (upholsteryError) {
@@ -144,6 +158,7 @@ export async function GET(request: Request) {
     const { data: additionalOptions, error: optionsError } = await supabase
       .from("additional_options")
       .select("*")
+      .order("display_order", { ascending: true, nullsFirst: false })
       .order("name")
 
     if (optionsError) {
@@ -186,6 +201,13 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       data: result,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+      }
     })
   } catch (error) {
     console.error("Erro interno:", error)
