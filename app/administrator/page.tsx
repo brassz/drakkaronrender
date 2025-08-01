@@ -1,5 +1,9 @@
 "use client"
 
+// Force dynamic rendering and disable caching for Vercel
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { ConfirmationModal } from "@/components/confirmation-modal"
@@ -9,7 +13,7 @@ import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import type { MarketingManual, MarketingWarranty } from "@/lib/database-service"
-import { CACHE_CONFIG, triggerDataUpdate } from "@/lib/cache-config"
+import { CACHE_CONFIG, triggerDataUpdate, forceVercelRefresh } from "@/lib/cache-config"
 
 interface DataItem {
   name: string
@@ -1102,7 +1106,8 @@ export default function AdministratorPage() {
       const result = await response.json()
 
       if (result.success) {
-        showNotification("✅ Dados salvos no banco de dados com sucesso! Todas as páginas do sistema foram atualizadas em tempo real.", "success")
+        showNotification("✅ Dados salvos no banco de dados com sucesso! Recarregando página para sincronizar com o Vercel...", "success")
+        
         // Reload data from database to get the IDs of newly created items
         await loadDataFromDatabase()
         
@@ -1117,6 +1122,11 @@ export default function AdministratorPage() {
         
         // Trigger storage events to notify other tabs/windows
         triggerDataUpdate('ADMIN_DATA_UPDATED')
+        
+        // Force Vercel refresh after a short delay to ensure data is saved
+        setTimeout(async () => {
+          await forceVercelRefresh()
+        }, 2000)
         
       } else {
         showNotification("❌ Erro ao salvar: " + result.error, "error")

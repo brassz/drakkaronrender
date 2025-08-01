@@ -9,11 +9,12 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Disable cache in development to prevent stale data issues
+  // Configure ISR (Incremental Static Regeneration) for Vercel
   experimental: {
-    serverComponentsExternalPackages: []
+    serverComponentsExternalPackages: [],
+    isrMemoryCacheSize: 0, // Disable ISR memory cache
   },
-  // Add headers to prevent caching
+  // Force revalidation on every request for dynamic content
   async headers() {
     return [
       {
@@ -21,7 +22,28 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate',
+            value: 'no-cache, no-store, must-revalidate, max-age=0',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow',
+          },
+        ],
+      },
+      {
+        source: '/(administrator|dealer)/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate, max-age=0',
           },
           {
             key: 'Pragma',
@@ -32,6 +54,15 @@ const nextConfig = {
             value: '0',
           },
         ],
+      },
+    ]
+  },
+  // Ensure dynamic routes are properly handled
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: '/api/:path*',
       },
     ]
   },

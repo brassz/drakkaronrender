@@ -22,14 +22,17 @@ export const CACHE_CONFIG = {
     return `${url}${separator}_t=${params._t}&_v=${params._v}`
   },
   
-  // Fetch com configuração anti-cache
+  // Fetch com configuração anti-cache - Enhanced for Vercel
   fetchWithNoCache: (url: string, options: RequestInit = {}) => {
     const bustingUrl = CACHE_CONFIG.addCacheBusting(url)
     return fetch(bustingUrl, {
       ...options,
       cache: 'no-store',
+      next: { revalidate: 0 }, // Force revalidation on every request for Vercel
       headers: {
         ...CACHE_CONFIG.NO_CACHE_HEADERS,
+        'X-Vercel-Cache': 'MISS', // Force cache miss on Vercel
+        'X-Vercel-Set-Cache-Headers': 'false',
         ...options.headers,
       },
     })
@@ -79,4 +82,25 @@ export const triggerDataUpdate = (eventType: keyof typeof CACHE_CONFIG.STORAGE_E
     key: event,
     newValue: Date.now().toString()
   }))
+}
+
+// Function to force refresh on Vercel specifically
+export const forceVercelRefresh = async () => {
+  try {
+    // Clear all possible caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys()
+      await Promise.all(
+        cacheNames.map(cacheName => caches.delete(cacheName))
+      )
+    }
+    
+    // Force reload with no cache
+    if (typeof window !== 'undefined') {
+      // Force hard refresh to bypass all caches
+      window.location.reload()
+    }
+  } catch (error) {
+    console.warn('Failed to clear caches:', error)
+  }
 }

@@ -4,6 +4,10 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 
+// Force dynamic rendering and disable caching for Vercel
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default function DealerLayout({
   children,
 }: {
