@@ -1103,8 +1103,6 @@ export default function AdministratorPage() {
 
       if (result.success) {
         showNotification("✅ Dados salvos no banco de dados com sucesso! Todas as páginas do sistema foram atualizadas em tempo real.", "success")
-        // Reload data from database to get the IDs of newly created items
-        await loadDataFromDatabase()
         
         // Force browser cache refresh for immediate sync
         if ('serviceWorker' in navigator) {
@@ -1117,6 +1115,19 @@ export default function AdministratorPage() {
         
         // Trigger storage events to notify other tabs/windows
         triggerDataUpdate('ADMIN_DATA_UPDATED')
+        
+        // Wait a bit for revalidation to complete on Vercel
+        if (process.env.NEXT_PUBLIC_VERCEL_ENV) {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
+        
+        // Reload data from database to get the IDs of newly created items
+        await loadDataFromDatabase()
+        
+        // Force page refresh on Vercel to ensure data is updated
+        if (process.env.NEXT_PUBLIC_VERCEL_ENV) {
+          window.location.reload()
+        }
         
       } else {
         showNotification("❌ Erro ao salvar: " + result.error, "error")

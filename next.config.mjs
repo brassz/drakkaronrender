@@ -11,7 +11,13 @@ const nextConfig = {
   },
   // Disable cache in development to prevent stale data issues
   experimental: {
-    serverComponentsExternalPackages: []
+    serverComponentsExternalPackages: [],
+    // Force dynamic rendering for all pages
+    forceSwcTransforms: true,
+  },
+  // Disable static generation for API routes
+  generateBuildId: async () => {
+    return Date.now().toString()
   },
   // Add headers to prevent caching
   async headers() {
@@ -21,7 +27,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate',
+            value: 'no-cache, no-store, must-revalidate, max-age=0, s-maxage=0',
           },
           {
             key: 'Pragma',
@@ -30,6 +36,14 @@ const nextConfig = {
           {
             key: 'Expires',
             value: '0',
+          },
+          {
+            key: 'CDN-Cache-Control',
+            value: 'no-store',
+          },
+          {
+            key: 'Vercel-CDN-Cache-Control',
+            value: 'no-store',
           },
         ],
       },

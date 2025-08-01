@@ -2,6 +2,9 @@ import { DatabaseService } from "@/lib/database-service"
 import { NextResponse } from "next/server"
 import { revalidatePath, revalidateTag } from "next/cache"
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function POST(req: Request) {
   try {
     const { enginePackages, hullColors, upholsteryPackages, additionalOptions, boatModels, dealers, orders, mode } =
@@ -20,11 +23,17 @@ export async function POST(req: Request) {
       await Promise.all(promises)
       
       // Revalidate all paths and tags that might use this data
-      revalidatePath('/dealer')
-      revalidatePath('/dealer/inventory')
-      revalidatePath('/dealer/after-sales') 
-      revalidatePath('/administrator')
+      revalidatePath('/dealer', 'layout')
+      revalidatePath('/dealer/inventory', 'layout')
+      revalidatePath('/dealer/after-sales', 'layout') 
+      revalidatePath('/administrator', 'layout')
+      revalidatePath('/', 'layout')
       revalidateTag('admin-data')
+      
+      // Force revalidation on Vercel
+      if (process.env.VERCEL) {
+        revalidatePath('/', 'layout')
+      }
     }
 
     const response = NextResponse.json({ success: true })
