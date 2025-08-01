@@ -9,6 +9,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Enable standalone mode for Docker deployment
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
   // Disable cache in development to prevent stale data issues
   experimental: {
     serverComponentsExternalPackages: []
