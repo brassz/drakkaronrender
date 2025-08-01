@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: portalatt-nextjs
+    runtime: node
+    plan: free
+    region: oregon # ou outra região disponível
+    buildCommand: ./render-build.sh
+    startCommand: ./render-start.sh
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: BLOB_READ_WRITE_TOKEN
+        sync: false
+      - key: SKIP_ENV_VALIDATION
+        value: true
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - "**/*.ts"
+        - "**/*.tsx"
+        - "**/*.js"
+        - "**/*.jsx"
+        - "**/*.json"
+        - "**/*.mjs"
+        - "**/*.css"
+        - "public/**/*"

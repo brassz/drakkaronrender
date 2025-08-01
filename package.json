@@ -2,11 +2,16 @@
   "name": "portalatt-copia2",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start",
+    "start": "next start -p $PORT",
+    "start:custom": "NODE_ENV=production node server.js",
     "db:verify": "tsx scripts/verify-data-persistence.ts",
     "db:backup": "tsx scripts/backup-database.ts",
     "db:test": "tsx scripts/verify-data-persistence.ts"
@@ -72,6 +77,7 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.7.0",
     "typescript": "^5",
     "vaul": "^0.9.6",
     "zod": "^3.24.1"
