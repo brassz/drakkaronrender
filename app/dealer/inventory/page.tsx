@@ -5,6 +5,9 @@ import Link from "next/link"
 import { Notification, useNotification } from "@/components/notification"
 import { CACHE_CONFIG } from "@/lib/cache-config"
 
+// Route segment configuration to disable static generation
+export const dynamic = 'force-dynamic'
+
 interface BoatInventory {
   id?: number
   dealer_id?: string

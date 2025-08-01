@@ -4,6 +4,9 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Notification, useNotification } from "@/components/notification"
 
+// Route segment configuration to disable static generation
+export const dynamic = 'force-dynamic'
+
 interface CostItem {
   id: number
   name: string

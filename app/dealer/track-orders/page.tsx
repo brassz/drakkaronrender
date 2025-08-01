@@ -6,6 +6,9 @@ import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import Image from "next/image"
 
+// Route segment configuration to disable static generation
+export const dynamic = 'force-dynamic'
+
 interface Order {
   orderId: string
   dealer: string
