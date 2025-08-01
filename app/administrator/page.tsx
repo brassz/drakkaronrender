@@ -8,6 +8,7 @@ import Image from "next/image"
 import { ConfirmationModal } from "@/components/confirmation-modal"
 import { Notification, useNotification } from "@/components/notification"
 import { MultiSelectDropdown } from "@/components/multi-select-dropdown"
+import { DataPersistenceTest } from "@/components/data-persistence-test"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
@@ -1079,8 +1080,13 @@ export default function AdministratorPage() {
   }
 
   const saveAll = async () => {
+    setIsLoading(true)
+    
     try {
-      setIsLoading(true)
+      console.log("🔧 Iniciando salvamento de todos os dados...")
+      
+      // Save main admin data
+      console.log("📤 Salvando dados principais...")
       const response = await fetch("/api/save-admin-data", {
         method: "POST",
         cache: 'no-store',
@@ -1104,39 +1110,34 @@ export default function AdministratorPage() {
 
       const result = await response.json()
 
-      if (result.success) {
-        showNotification("✅ Dados salvos no banco de dados com sucesso! Todas as páginas do sistema foram atualizadas em tempo real.", "success")
-        // Reload data from database to get the IDs of newly created items
-        await loadDataFromDatabase()
-        
-        // Force browser cache refresh for immediate sync
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-              registration.update();
-            }
-          });
-        }
-        
-        // Trigger storage events to notify other tabs/windows
-        triggerDataUpdate('ADMIN_DATA_UPDATED')
-        
-      } else {
-        showNotification("❌ Erro ao salvar: " + result.error, "error")
+      if (!result.success) {
+        showNotification("❌ Erro ao salvar dados principais: " + result.error, "error")
+        return
       }
-    } catch (error) {
-      console.error("Erro ao salvar:", error)
-      showNotification("❌ Erro ao conectar com o banco", "error")
-    } finally {
-      setIsLoading(false)
-    }
 
-    // Save marketing content - only save items that have at least a title and image
-    if (marketingContent.length > 0) {
-      for (const content of marketingContent) {
-        // Only save if we have at least one title and an image URL
-        if ((content.title_en?.trim() || content.title_pt?.trim()) && content.image_url?.trim()) {
-          try {
+      console.log("✅ Dados principais salvos com sucesso!")
+      
+      // Reload data from database to get the IDs of newly created items
+      await loadDataFromDatabase()
+      
+      // Force browser cache refresh for immediate sync
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.update();
+          }
+        });
+      }
+      
+      // Trigger storage events to notify other tabs/windows
+      triggerDataUpdate('ADMIN_DATA_UPDATED')
+
+      // Save marketing content - only save items that have at least a title and image
+      console.log("📤 Salvando conteúdo de marketing...")
+      if (marketingContent.length > 0) {
+        for (const content of marketingContent) {
+          // Only save if we have at least one title and an image URL
+          if ((content.title_en?.trim() || content.title_pt?.trim()) && content.image_url?.trim()) {
             const response = await fetch("/api/marketing-content", {
               method: "POST",
               cache: 'no-store',
@@ -1162,19 +1163,15 @@ export default function AdministratorPage() {
               console.error("Error saving marketing content:", result.error)
               showNotification(`❌ Erro ao salvar conteúdo de marketing: ${result.error}`, "error")
             }
-          } catch (error) {
-            console.error("Error saving marketing content:", error)
-            showNotification("❌ Erro ao salvar conteúdo de marketing", "error")
           }
         }
       }
-    }
 
-    // Save marketing manuals
-    if (marketingManuals.length > 0) {
-      for (const manual of marketingManuals) {
-        if (manual.name_en && manual.name_pt && manual.url) {
-          try {
+      // Save marketing manuals
+      console.log("📤 Salvando manuais de marketing...")
+      if (marketingManuals.length > 0) {
+        for (const manual of marketingManuals) {
+          if (manual.name_en && manual.name_pt && manual.url) {
             await fetch("/api/marketing-manuals", {
               method: "POST",
               cache: 'no-store',
@@ -1186,18 +1183,15 @@ export default function AdministratorPage() {
               },
               body: JSON.stringify(manual),
             })
-          } catch (error) {
-            console.error("Error saving marketing manual:", error)
           }
         }
       }
-    }
 
-    // Save marketing warranties
-    if (marketingWarranties.length > 0) {
-      for (const warranty of marketingWarranties) {
-        if (warranty.name_en && warranty.name_pt && warranty.url) {
-          try {
+      // Save marketing warranties
+      console.log("📤 Salvando garantias de marketing...")
+      if (marketingWarranties.length > 0) {
+        for (const warranty of marketingWarranties) {
+          if (warranty.name_en && warranty.name_pt && warranty.url) {
             await fetch("/api/marketing-warranties", {
               method: "POST",
               cache: 'no-store',
@@ -1209,18 +1203,15 @@ export default function AdministratorPage() {
               },
               body: JSON.stringify(warranty),
             })
-          } catch (error) {
-            console.error("Error saving marketing warranty:", error)
           }
         }
       }
-    }
 
-    // Save factory production
-    if (factoryProduction.length > 0) {
-      for (const item of factoryProduction) {
-        if (item.boat_model && item.engine_package) {
-          try {
+      // Save factory production
+      console.log("📤 Salvando produção da fábrica...")
+      if (factoryProduction.length > 0) {
+        for (const item of factoryProduction) {
+          if (item.boat_model && item.engine_package) {
             await fetch("/api/factory-production", {
               method: "POST",
               cache: 'no-store',
@@ -1232,21 +1223,19 @@ export default function AdministratorPage() {
               },
               body: JSON.stringify(item),
             })
-          } catch (error) {
-            console.error("Error saving factory production:", error)
           }
         }
       }
-    }
 
-    // Na função saveAll, vamos adicionar um log específico para engine packages:
-    console.log(
-      "🔧 Salvando engine packages com países:",
-      enginePackages.map((pkg) => ({
-        name: pkg.name,
-        countries: pkg.countries,
-      })),
-    )
+      console.log("✅ Todos os dados foram salvos com sucesso!")
+      showNotification("✅ Dados salvos no banco de dados com sucesso! Todas as páginas do sistema foram atualizadas em tempo real.", "success")
+      
+    } catch (error) {
+      console.error("❌ Erro durante o salvamento:", error)
+      showNotification("❌ Erro ao conectar com o banco: " + error, "error")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleViewProblems = (issues: ServiceRequestIssue[]) => {
@@ -2262,6 +2251,7 @@ export default function AdministratorPage() {
               { key: "manuals", label: "Marketing Manuals" },
               { key: "warranties", label: "Marketing Warranties" },
               { key: "factory", label: "Factory Production" },
+              { key: "test", label: "🔧 Teste de Persistência" },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -4121,6 +4111,12 @@ const ServiceRequestPDFGenerator = ({
           </div>
         </div>
       </div>
+
+      {activeTab === "test" && (
+        <div className="space-y-6">
+          <DataPersistenceTest />
+        </div>
+      )}
     </div>
   )
 }
