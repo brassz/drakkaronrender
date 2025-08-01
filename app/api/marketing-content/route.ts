@@ -117,10 +117,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: result.error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, data: result.data?.[0] })
+    const response = NextResponse.json({ success: true, data: result.data?.[0] })
+    
+    // Add no-cache headers to ensure fresh data
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
+    return response
   } catch (error) {
     console.error("Error in marketing content POST:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    
+    // Add no-cache headers to error responses too
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    
+    return errorResponse
   }
 }
 
@@ -140,9 +154,23 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    const response = NextResponse.json({ success: true })
+    
+    // Add no-cache headers to ensure fresh data
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
+    return response
   } catch (error) {
     console.error("Error in marketing content DELETE:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    
+    // Add no-cache headers to error responses too
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    
+    return errorResponse
   }
 }

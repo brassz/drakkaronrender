@@ -6,10 +6,24 @@ const db = new DatabaseService()
 export async function GET() {
   try {
     const manuals = await db.getMarketingManuals()
-    return NextResponse.json({ success: true, data: manuals })
+    const response = NextResponse.json({ success: true, data: manuals })
+    
+    // Add no-cache headers to ensure fresh data
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
+    return response
   } catch (error) {
     console.error("Error fetching marketing manuals:", error)
-    return NextResponse.json({ success: false, error: "Failed to fetch marketing manuals" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Failed to fetch marketing manuals" }, { status: 500 })
+    
+    // Add no-cache headers to error responses too
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    
+    return errorResponse
   }
 }
 
@@ -23,10 +37,24 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await db.saveMarketingManual(manual)
-    return NextResponse.json({ success: true, data: result })
+    const response = NextResponse.json({ success: true, data: result })
+    
+    // Add no-cache headers to ensure fresh data
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
+    return response
   } catch (error) {
     console.error("Error saving marketing manual:", error)
-    return NextResponse.json({ success: false, error: "Failed to save marketing manual" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Failed to save marketing manual" }, { status: 500 })
+    
+    // Add no-cache headers to error responses too
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    
+    return errorResponse
   }
 }
 
@@ -40,9 +68,23 @@ export async function DELETE(request: NextRequest) {
     }
 
     await db.deleteMarketingManual(Number.parseInt(id))
-    return NextResponse.json({ success: true })
+    const response = NextResponse.json({ success: true })
+    
+    // Add no-cache headers to ensure fresh data
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
+    return response
   } catch (error) {
     console.error("Error deleting marketing manual:", error)
-    return NextResponse.json({ success: false, error: "Failed to delete marketing manual" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Failed to delete marketing manual" }, { status: 500 })
+    
+    // Add no-cache headers to error responses too
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    
+    return errorResponse
   }
 }

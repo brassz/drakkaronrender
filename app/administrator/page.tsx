@@ -1079,7 +1079,13 @@ export default function AdministratorPage() {
       setIsLoading(true)
       const response = await fetch("/api/save-admin-data", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        cache: 'no-store',
+        headers: { 
+          "Content-Type": "application/json",
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
         body: JSON.stringify({
           enginePackages,
           hullColors,
@@ -1116,7 +1122,13 @@ export default function AdministratorPage() {
           try {
             const response = await fetch("/api/marketing-content", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              cache: 'no-store',
+              headers: { 
+                "Content-Type": "application/json",
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              },
               body: JSON.stringify({
                 ...content,
                 title_en: content.title_en?.trim() || content.title_pt?.trim() || "",
@@ -1148,7 +1160,13 @@ export default function AdministratorPage() {
           try {
             await fetch("/api/marketing-manuals", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              cache: 'no-store',
+              headers: { 
+                "Content-Type": "application/json",
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              },
               body: JSON.stringify(manual),
             })
           } catch (error) {
@@ -1165,7 +1183,13 @@ export default function AdministratorPage() {
           try {
             await fetch("/api/marketing-warranties", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              cache: 'no-store',
+              headers: { 
+                "Content-Type": "application/json",
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              },
               body: JSON.stringify(warranty),
             })
           } catch (error) {
@@ -1182,7 +1206,13 @@ export default function AdministratorPage() {
           try {
             await fetch("/api/factory-production", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              cache: 'no-store',
+              headers: { 
+                "Content-Type": "application/json",
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              },
               body: JSON.stringify(item),
             })
           } catch (error) {
@@ -1822,7 +1852,14 @@ export default function AdministratorPage() {
   const loadDataFromDatabase = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch("/api/get-admin-data")
+      const response = await fetch("/api/get-admin-data", {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
 
       if (!response.ok) {
         const fallbackText = await response.text()
@@ -1922,6 +1959,12 @@ export default function AdministratorPage() {
     try {
       const response = await fetch(`/api/marketing-content?id=${id}`, {
         method: "DELETE",
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       })
 
       const result = await response.json()
@@ -1964,6 +2007,12 @@ export default function AdministratorPage() {
     try {
       const response = await fetch(`/api/marketing-manuals?id=${id}`, {
         method: "DELETE",
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       })
 
       const result = await response.json()
@@ -2006,6 +2055,12 @@ export default function AdministratorPage() {
     try {
       const response = await fetch(`/api/marketing-warranties?id=${id}`, {
         method: "DELETE",
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       })
 
       const result = await response.json()
@@ -2057,6 +2112,12 @@ export default function AdministratorPage() {
     try {
       const response = await fetch(`/api/factory-production?id=${id}`, {
         method: "DELETE",
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       })
 
       const result = await response.json()
@@ -2078,7 +2139,14 @@ export default function AdministratorPage() {
 
   const refreshFactoryProduction = async () => {
     try {
-      const response = await fetch("/api/factory-production")
+      const response = await fetch("/api/factory-production", {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       const result = await response.json()
 
       if (result.success) {
