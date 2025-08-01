@@ -1095,7 +1095,7 @@ export default function AdministratorPage() {
       const result = await response.json()
 
       if (result.success) {
-        showNotification("✅ Dados salvos no banco de dados com sucesso!", "success")
+        showNotification("✅ Dados salvos no banco de dados com sucesso! Os dealers precisarão atualizar suas páginas para ver as mudanças.", "success")
         // Reload data from database to get the IDs of newly created items
         await loadDataFromDatabase()
       } else {

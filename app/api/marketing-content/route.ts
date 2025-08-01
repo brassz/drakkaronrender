@@ -25,10 +25,24 @@ export async function GET() {
         boat_model: item.boat_model || "All Models",
       })) || []
 
-    return NextResponse.json({ success: true, data: processedData })
+    const response = NextResponse.json({ success: true, data: processedData })
+    
+    // Add no-cache headers to ensure fresh data
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
+    return response
   } catch (error) {
     console.error("Error in marketing content GET:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    
+    // Add no-cache headers to error responses too
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    
+    return errorResponse
   }
 }
 

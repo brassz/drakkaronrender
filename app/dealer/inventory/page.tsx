@@ -566,9 +566,20 @@ export default function InventoryPage() {
         </Link>
 
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-blue-900 mb-4">
-            {translations[lang as keyof typeof translations]["Inventory Management"]}
-          </h1>
+          <div className="flex justify-between items-center mb-4">
+            <div></div>
+            <h1 className="text-4xl font-bold text-blue-900">
+              {translations[lang as keyof typeof translations]["Inventory Management"]}
+            </h1>
+            <button
+              onClick={loadConfig}
+              disabled={loading}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Atualizar configurações"
+            >
+              🔄 Refresh
+            </button>
+          </div>
           <p className="text-lg text-gray-600">
             {translations[lang as keyof typeof translations]["Manage your boat inventory and track sales."]}
           </p>

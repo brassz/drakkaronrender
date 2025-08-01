@@ -76,7 +76,7 @@ export async function GET() {
       additional_options: Array.isArray(item.additional_options) ? item.additional_options : [],
     }))
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         enginePackages,
@@ -93,8 +93,22 @@ export async function GET() {
         factoryProduction: cleanFactoryProduction,
       },
     })
+
+    // Add no-cache headers to ensure fresh data
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+
+    return response
   } catch (error) {
     console.error("Error in get-admin-data:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    
+    // Add no-cache headers to error responses too
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    
+    return errorResponse
   }
 }
