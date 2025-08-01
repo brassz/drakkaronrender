@@ -1096,7 +1096,8 @@ export default function AdministratorPage() {
 
       if (result.success) {
         showNotification("✅ Dados salvos no banco de dados com sucesso!", "success")
-        // Don't reload from database to preserve the current order
+        // Reload data from database to get the IDs of newly created items
+        await loadDataFromDatabase()
       } else {
         showNotification("❌ Erro ao salvar: " + result.error, "error")
       }

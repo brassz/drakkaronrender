@@ -274,11 +274,14 @@ export class DatabaseService {
           display_order: item.display_order,
         }))
 
+      let insertedData = []
       if (newItems.length > 0) {
         console.log("📝 Inserindo novos pacotes:", newItems)
-        const { error: insertError } = await supabase.from("engine_packages").insert(newItems)
+        const { data, error: insertError } = await supabase.from("engine_packages").insert(newItems).select()
         if (insertError) {
           DatabaseService.handleSupabaseError(insertError, "saveEnginePackages - insert")
+        } else {
+          insertedData = data || []
         }
       }
 
@@ -303,8 +306,10 @@ export class DatabaseService {
       }
 
       console.log("✅ Pacotes de motor salvos com sucesso!")
+      return { existingItems, insertedData }
     } catch (error) {
       DatabaseService.handleSupabaseError(error, "saveEnginePackages")
+      return { existingItems: [], insertedData: [] }
     }
   }
 
@@ -355,10 +360,13 @@ export class DatabaseService {
           display_order: item.display_order,
         }))
 
+      let insertedData = []
       if (newItems.length > 0) {
-        const { error: insertError } = await supabase.from("hull_colors").insert(newItems)
+        const { data, error: insertError } = await supabase.from("hull_colors").insert(newItems).select()
         if (insertError) {
           DatabaseService.handleSupabaseError(insertError, "saveHullColors - insert")
+        } else {
+          insertedData = data || []
         }
       }
 
@@ -379,10 +387,10 @@ export class DatabaseService {
           DatabaseService.handleSupabaseError(updateError, `saveHullColors - update ${item.id}`)
         }
       }
-
-      console.log("✅ Cores de casco salvas com sucesso!")
+      return { existingItems, insertedData }
     } catch (error) {
       DatabaseService.handleSupabaseError(error, "saveHullColors")
+      return { existingItems: [], insertedData: [] }
     }
   }
 
@@ -433,10 +441,13 @@ export class DatabaseService {
           display_order: item.display_order,
         }))
 
+      let insertedData = []
       if (newItems.length > 0) {
-        const { error: insertError } = await supabase.from("upholstery_packages").insert(newItems)
+        const { data, error: insertError } = await supabase.from("upholstery_packages").insert(newItems).select()
         if (insertError) {
           DatabaseService.handleSupabaseError(insertError, "saveUpholsteryPackages - insert")
+        } else {
+          insertedData = data || []
         }
       }
 
@@ -457,10 +468,10 @@ export class DatabaseService {
           DatabaseService.handleSupabaseError(updateError, `saveUpholsteryPackages - update ${item.id}`)
         }
       }
-
-      console.log("✅ Pacotes de estofamento salvos com sucesso!")
+      return { existingItems, insertedData }
     } catch (error) {
       DatabaseService.handleSupabaseError(error, "saveUpholsteryPackages")
+      return { existingItems: [], insertedData: [] }
     }
   }
 
@@ -489,36 +500,39 @@ export class DatabaseService {
     const supabase = createServerClient()
     try {
       const newItems = options
-        .filter((option) => !option.id)
-        .map((option) => ({
-          name: option.name,
-          name_pt: option.name_pt,
-          usd: option.usd,
-          brl: option.brl,
-          compatible_models: option.compatible_models || [],
-          countries: option.countries && option.countries.length > 0 ? option.countries : ["All"],
-          category: option.category || "deck_equipment_comfort",
-          display_order: option.display_order,
+        .filter((item) => !item.id)
+        .map((item) => ({
+          name: item.name,
+          name_pt: item.name_pt,
+          usd: item.usd,
+          brl: item.brl,
+          compatible_models: item.compatible_models || [],
+          countries: item.countries && item.countries.length > 0 ? item.countries : ["All"],
+          category: item.category,
+          display_order: item.display_order,
         }))
 
       const existingItems = options
-        .filter((option) => option.id)
-        .map((option) => ({
-          id: option.id,
-          name: option.name,
-          name_pt: option.name_pt,
-          usd: option.usd,
-          brl: option.brl,
-          compatible_models: option.compatible_models || [],
-          countries: option.countries,
-          category: option.category || "deck_equipment_comfort",
-          display_order: option.display_order,
+        .filter((item) => item.id)
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          name_pt: item.name_pt,
+          usd: item.usd,
+          brl: item.brl,
+          compatible_models: item.compatible_models || [],
+          countries: item.countries,
+          category: item.category,
+          display_order: item.display_order,
         }))
 
+      let insertedData = []
       if (newItems.length > 0) {
-        const { error: insertError } = await supabase.from("additional_options").insert(newItems)
+        const { data, error: insertError } = await supabase.from("additional_options").insert(newItems).select()
         if (insertError) {
           DatabaseService.handleSupabaseError(insertError, "saveAdditionalOptions - insert")
+        } else {
+          insertedData = data || []
         }
       }
 
@@ -535,16 +549,16 @@ export class DatabaseService {
             category: item.category,
             display_order: item.display_order,
           })
-          .eq("id", item.id)
+          .eq("id", item.id!)
 
         if (updateError) {
           DatabaseService.handleSupabaseError(updateError, `saveAdditionalOptions - update ${item.id}`)
         }
       }
-
-      console.log("✅ Opções adicionais salvas com sucesso!")
+      return { existingItems, insertedData }
     } catch (error) {
       DatabaseService.handleSupabaseError(error, "saveAdditionalOptions")
+      return { existingItems: [], insertedData: [] }
     }
   }
 
@@ -573,30 +587,33 @@ export class DatabaseService {
     const supabase = createServerClient()
     try {
       const newItems = models
-        .filter((model) => !model.id)
-        .map((model) => ({
-          name: model.name,
-          name_pt: model.name_pt,
-          usd: model.usd || 0,
-          brl: model.brl || 0,
-          display_order: model.display_order,
+        .filter((item) => !item.id)
+        .map((item) => ({
+          name: item.name,
+          name_pt: item.name_pt,
+          usd: item.usd,
+          brl: item.brl,
+          display_order: item.display_order,
         }))
 
       const existingItems = models
-        .filter((model) => model.id)
-        .map((model) => ({
-          id: model.id,
-          name: model.name,
-          name_pt: model.name_pt,
-          usd: model.usd || 0,
-          brl: model.brl || 0,
-          display_order: model.display_order,
+        .filter((item) => item.id)
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          name_pt: item.name_pt,
+          usd: item.usd,
+          brl: item.brl,
+          display_order: item.display_order,
         }))
 
+      let insertedData = []
       if (newItems.length > 0) {
-        const { error: insertError } = await supabase.from("boat_models").insert(newItems)
+        const { data, error: insertError } = await supabase.from("boat_models").insert(newItems).select()
         if (insertError) {
           DatabaseService.handleSupabaseError(insertError, "saveBoatModels - insert")
+        } else {
+          insertedData = data || []
         }
       }
 
@@ -606,20 +623,20 @@ export class DatabaseService {
           .update({
             name: item.name,
             name_pt: item.name_pt,
-            usd: item.usd || 0,
-            brl: item.brl || 0,
+            usd: item.usd,
+            brl: item.brl,
             display_order: item.display_order,
           })
-          .eq("id", item.id)
+          .eq("id", item.id!)
 
         if (updateError) {
           DatabaseService.handleSupabaseError(updateError, `saveBoatModels - update ${item.id}`)
         }
       }
-
-      console.log("✅ Modelos de barco salvos com sucesso!")
+      return { existingItems, insertedData }
     } catch (error) {
       DatabaseService.handleSupabaseError(error, "saveBoatModels")
+      return { existingItems: [], insertedData: [] }
     }
   }
 
@@ -677,94 +694,58 @@ export class DatabaseService {
   static async saveDealers(dealers: Dealer[]) {
     const supabase = createServerClient()
     try {
-      console.log("🔄 Iniciando salvamento de dealers:", dealers.length)
-      const uniqueByEmail = Array.from(new Map(dealers.map((d) => [d.email?.toLowerCase().trim(), d])).values())
-      console.log("📧 Dealers únicos por email:", uniqueByEmail.length)
+      const newItems = dealers
+        .filter((d) => !d.id)
+        .map((d) => ({
+          name: d.name || "",
+          email: d.email || "",
+          password: d.password || "",
+          phone: d.phone || "",
+          address: d.address || "",
+          city: d.city || "",
+          state: d.state || "",
+          zip_code: d.zip_code || "",
+          country: d.country || "Brazil",
+          display_order: d.display_order || null,
+        }))
 
-      // First, get all existing dealers from the database to check for email conflicts
-      console.log("🔍 Buscando dealers existentes...")
-      const { data: existingDealers, error: fetchError } = await supabase.from("dealers").select("id, email")
+      const existingItems = dealers.filter((d) => d.id)
 
-      if (fetchError) {
-        DatabaseService.handleSupabaseError(fetchError, "saveDealers - fetch existing")
-      }
-
-      console.log("✅ Dealers existentes encontrados:", existingDealers?.length || 0)
-
-      const existingEmails = new Set(existingDealers?.map((d) => d.email?.toLowerCase().trim()) || [])
-      const existingEmailToId = new Map(existingDealers?.map((d) => [d.email?.toLowerCase().trim(), d.id]) || [])
-
-      // Separate dealers into new and existing based on email existence in database
-      const newDealers = uniqueByEmail.filter((d) => !existingEmails.has(d.email?.toLowerCase().trim()))
-      const existingDealersToUpdate = uniqueByEmail.filter((d) => existingEmails.has(d.email?.toLowerCase().trim()))
-
-      console.log("📝 Novos dealers para inserir:", newDealers.length)
-      console.log("🔄 Dealers existentes para atualizar:", existingDealersToUpdate.length)
-
-      // Insert new dealers (without id field)
-      if (newDealers.length > 0) {
-        console.log(
-          "📝 Inserindo novos dealers:",
-          newDealers.map((d) => d.email),
-        )
-
-        const { error: insertError } = await supabase.from("dealers").insert(
-          newDealers.map((d) => ({
-            name: d.name,
-            email: d.email,
-            password: d.password,
-            phone: d.phone || null,
-            address: d.address || null,
-            city: d.city || null,
-            state: d.state || null,
-            zip_code: d.zip_code || null,
-            country: d.country,
-            display_order: d.display_order || null,
-          })),
-        )
-
+      let insertedData = []
+      if (newItems.length > 0) {
+        const { data, error: insertError } = await supabase.from("dealers").insert(newItems).select()
         if (insertError) {
-          DatabaseService.handleSupabaseError(insertError, "saveDealers - insert new")
-        }
-        console.log("✅ Novos dealers inseridos com sucesso!")
-      }
-
-      // Update existing dealers
-      if (existingDealersToUpdate.length > 0) {
-        console.log(
-          "🔄 Atualizando dealers existentes:",
-          existingDealersToUpdate.map((d) => d.email),
-        )
-
-        for (const dealer of existingDealersToUpdate) {
-          const existingId = existingEmailToId.get(dealer.email?.toLowerCase().trim())
-          console.log(`🔄 Atualizando dealer ${dealer.email} (ID: ${existingId})`)
-
-          const { error: updateError } = await supabase
-            .from("dealers")
-            .update({
-              name: dealer.name,
-              password: dealer.password,
-              phone: dealer.phone || null,
-              address: dealer.address || null,
-              city: dealer.city || null,
-              state: dealer.state || null,
-              zip_code: dealer.zip_code || null,
-              country: dealer.country,
-              display_order: dealer.display_order || null,
-            })
-            .eq("id", existingId)
-
-          if (updateError) {
-            DatabaseService.handleSupabaseError(updateError, `saveDealers - update ${dealer.email}`)
-          }
-          console.log(`✅ Dealer ${dealer.email} atualizado com sucesso!`)
+          DatabaseService.handleSupabaseError(insertError, "saveDealers - insert")
+        } else {
+          insertedData = data || []
         }
       }
 
-      console.log("✅ Todos os dealers foram salvos/atualizados com sucesso!")
+      for (const dealer of existingItems) {
+        const { error: updateError } = await supabase
+          .from("dealers")
+          .update({
+            name: dealer.name || "",
+            email: dealer.email || "",
+            password: dealer.password || "",
+            phone: dealer.phone || "",
+            address: dealer.address || "",
+            city: dealer.city || "",
+            state: dealer.state || "",
+            zip_code: dealer.zip_code || "",
+            country: dealer.country || "Brazil",
+            display_order: dealer.display_order || null,
+          })
+          .eq("id", dealer.id!)
+
+        if (updateError) {
+          DatabaseService.handleSupabaseError(updateError, `saveDealers - update ${dealer.id}`)
+        }
+      }
+      return { existingItems, insertedData }
     } catch (error) {
       DatabaseService.handleSupabaseError(error, "saveDealers")
+      return { existingItems: [], insertedData: [] }
     }
   }
 
