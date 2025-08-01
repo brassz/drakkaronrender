@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+
+// Force dynamic rendering to prevent build-time pre-rendering
+export const dynamic = 'force-dynamic'
+export const revalidate = false
 import { Notification, useNotification } from "@/components/notification"
 import { CACHE_CONFIG } from "@/lib/cache-config"
 

@@ -5,6 +5,10 @@ import Link from "next/link"
 import Image from "next/image"
 import { Notification, useNotification } from "@/components/notification"
 
+// Force dynamic rendering to prevent build-time pre-rendering
+export const dynamic = 'force-dynamic'
+export const revalidate = false
+
 interface Quote {
   quoteId: string
   dealer: string

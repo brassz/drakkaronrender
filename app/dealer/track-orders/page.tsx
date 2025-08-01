@@ -6,6 +6,10 @@ import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import Image from "next/image"
 
+// Force dynamic rendering to prevent build-time pre-rendering
+export const dynamic = 'force-dynamic'
+export const revalidate = false
+
 interface Order {
   orderId: string
   dealer: string
