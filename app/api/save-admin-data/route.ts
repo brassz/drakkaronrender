@@ -2,6 +2,10 @@ import { DatabaseService } from "@/lib/database-service"
 import { NextResponse } from "next/server"
 import { revalidatePath, revalidateTag } from "next/cache"
 
+// Force dynamic rendering and disable caching for Vercel
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function POST(req: Request) {
   try {
     const { enginePackages, hullColors, upholsteryPackages, additionalOptions, boatModels, dealers, orders, mode } =
@@ -20,11 +24,16 @@ export async function POST(req: Request) {
       await Promise.all(promises)
       
       // Revalidate all paths and tags that might use this data
-      revalidatePath('/dealer')
-      revalidatePath('/dealer/inventory')
-      revalidatePath('/dealer/after-sales') 
-      revalidatePath('/administrator')
+      // Use force revalidation for Vercel
+      revalidatePath('/dealer', 'layout')
+      revalidatePath('/dealer/inventory', 'page')
+      revalidatePath('/dealer/after-sales', 'page') 
+      revalidatePath('/administrator', 'layout')
+      revalidatePath('/', 'layout')
       revalidateTag('admin-data')
+      revalidateTag('dealer-data')
+      revalidateTag('orders')
+      revalidateTag('boat-models')
     }
 
     const response = NextResponse.json({ success: true })

@@ -2,6 +2,10 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { revalidatePath, revalidateTag } from "next/cache"
 
+// Force dynamic rendering and disable caching for Vercel
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 export async function POST(request: Request) {
@@ -107,11 +111,15 @@ export async function POST(request: Request) {
       console.warn("⚠️ Erro ao enviar notificação:", emailError)
     }
 
-    // Revalidate paths to ensure fresh data
-    revalidatePath('/administrator')
-    revalidatePath('/dealer')
+    // Revalidate paths to ensure fresh data - Enhanced for Vercel
+    revalidatePath('/administrator', 'layout')
+    revalidatePath('/dealer', 'layout')
+    revalidatePath('/dealer/inventory', 'page')
+    revalidatePath('/', 'layout')
     revalidateTag('admin-data')
     revalidateTag('orders')
+    revalidateTag('dealer-data')
+    revalidateTag('boat-models')
 
     const response = NextResponse.json({
       success: true,
