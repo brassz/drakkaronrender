@@ -7,6 +7,7 @@ import Image from "next/image"
 import { Notification, useNotification } from "@/components/notification"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
+import { CACHE_CONFIG } from "@/lib/cache-config"
 
 interface Issue {
   text: string
@@ -231,11 +232,32 @@ export default function AfterSalesPage() {
     setLang(savedLang)
     loadServiceRequests()
     loadConfig()
+    
+    // Set up auto-refresh to get updated data every 30 seconds
+    const refreshInterval = setInterval(() => {
+      loadConfig() // Only refresh config data
+    }, 30000) // 30 seconds
+    
+    // Listen for admin data updates from other tabs/admin panel
+    const handleStorageChange = (e: StorageEvent) => {
+      if (Object.values(CACHE_CONFIG.STORAGE_EVENTS).includes(e.key as string)) {
+        console.log(`Data updated via storage event: ${e.key}, refreshing config...`)
+        loadConfig()
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
+    return () => {
+      clearInterval(refreshInterval)
+      window.removeEventListener('storage', handleStorageChange)
+    }
   }, [])
 
   const loadConfig = async () => {
     try {
-      const response = await fetch("/api/get-admin-data")
+      // Use centralized cache configuration
+      const response = await CACHE_CONFIG.fetchWithNoCache('/api/get-admin-data')
       const data = await response.json()
       if (data.success) {
         setBoatModels(data.data.boatModels || [])

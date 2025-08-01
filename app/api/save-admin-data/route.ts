@@ -1,5 +1,6 @@
 import { DatabaseService } from "@/lib/database-service"
 import { NextResponse } from "next/server"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 export async function POST(req: Request) {
   try {
@@ -17,6 +18,13 @@ export async function POST(req: Request) {
       if (orders) promises.push(DatabaseService.saveOrders(orders))
 
       await Promise.all(promises)
+      
+      // Revalidate all paths and tags that might use this data
+      revalidatePath('/dealer')
+      revalidatePath('/dealer/inventory')
+      revalidatePath('/dealer/after-sales') 
+      revalidatePath('/administrator')
+      revalidateTag('admin-data')
     }
 
     const response = NextResponse.json({ success: true })

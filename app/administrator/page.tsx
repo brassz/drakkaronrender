@@ -9,6 +9,7 @@ import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import type { MarketingManual, MarketingWarranty } from "@/lib/database-service"
+import { CACHE_CONFIG, triggerDataUpdate } from "@/lib/cache-config"
 
 interface DataItem {
   name: string
@@ -1101,9 +1102,22 @@ export default function AdministratorPage() {
       const result = await response.json()
 
       if (result.success) {
-        showNotification("✅ Dados salvos no banco de dados com sucesso! Os dealers precisarão atualizar suas páginas para ver as mudanças.", "success")
+        showNotification("✅ Dados salvos no banco de dados com sucesso! Todas as páginas do sistema foram atualizadas em tempo real.", "success")
         // Reload data from database to get the IDs of newly created items
         await loadDataFromDatabase()
+        
+        // Force browser cache refresh for immediate sync
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+              registration.update();
+            }
+          });
+        }
+        
+        // Trigger storage events to notify other tabs/windows
+        triggerDataUpdate('ADMIN_DATA_UPDATED')
+        
       } else {
         showNotification("❌ Erro ao salvar: " + result.error, "error")
       }
@@ -1852,14 +1866,8 @@ export default function AdministratorPage() {
   const loadDataFromDatabase = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch("/api/get-admin-data", {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      })
+      // Use centralized cache configuration
+      const response = await CACHE_CONFIG.fetchWithNoCache('/api/get-admin-data')
 
       if (!response.ok) {
         const fallbackText = await response.text()
