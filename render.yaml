@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: portalatt-app
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        fromSecret: NEXT_PUBLIC_SUPABASE_URL
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        fromSecret: NEXT_PUBLIC_SUPABASE_ANON_KEY
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        fromSecret: SUPABASE_SERVICE_ROLE_KEY
+      - key: NEXT_PUBLIC_APP_URL
+        fromSecret: NEXT_PUBLIC_APP_URL
+      - key: NEXTAUTH_URL
+        fromSecret: NEXTAUTH_URL
+      - key: NEXTAUTH_SECRET
+        fromSecret: NEXTAUTH_SECRET
+      - key: RESEND_API_KEY
+        fromSecret: RESEND_API_KEY
+      - key: OPENAI_API_KEY
+        fromSecret: OPENAI_API_KEY
+      - key: BLOB_READ_WRITE_TOKEN
+        fromSecret: BLOB_READ_WRITE_TOKEN
+    disk:
+      name: portalatt-disk
+      mountPath: /opt/render/project/src
+      sizeGB: 1
+    autoDeploy: true
+    branch: main
