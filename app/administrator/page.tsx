@@ -13,6 +13,8 @@ import html2canvas from "html2canvas"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import type { MarketingManual, MarketingWarranty } from "@/lib/database-service"
 import { CACHE_CONFIG, triggerDataUpdate } from "@/lib/cache-config"
+import { DebugPanel } from "@/components/debug-panel"
+import { RealtimeMonitor } from "@/components/realtime-monitor"
 
 interface DataItem {
   name: string
@@ -2203,6 +2205,8 @@ export default function AdministratorPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
+      <DebugPanel />
+      <RealtimeMonitor />
       <div className="max-w-7xl mx-auto">
         <div className="bg-white p-4 rounded-lg shadow mb-6 flex justify-between items-center">
           <div className="flex items-center gap-4">
