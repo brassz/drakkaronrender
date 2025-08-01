@@ -5,6 +5,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { Notification, useNotification } from "@/components/notification"
 
+// Force dynamic rendering to prevent build-time pre-rendering
+export const dynamic = 'force-dynamic'
+export const revalidate = false
+
 export default function DealerDashboard() {
   const [lang, setLang] = useState("pt")
   const [showPasswordModal, setShowPasswordModal] = useState(false)

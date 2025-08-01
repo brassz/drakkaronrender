@@ -6,6 +6,10 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Notification, useNotification } from "@/components/notification"
 
+// Force dynamic rendering to prevent build-time pre-rendering
+export const dynamic = 'force-dynamic'
+export const revalidate = false
+
 interface EnginePackage {
   id: number
   name: string

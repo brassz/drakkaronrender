@@ -5,6 +5,10 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
 
+// Force dynamic rendering to prevent build-time pre-rendering
+export const dynamic = 'force-dynamic'
+export const revalidate = false
+
 export default function DealerLoginPage() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
