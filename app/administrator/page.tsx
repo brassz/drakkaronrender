@@ -888,7 +888,7 @@ export default function AdministratorPage() {
     }
   }
 
-  const addRow = (type: string) => {
+  const addRow = async (type: string) => {
     const currentItems = getItemsByType(type)
     const nextOrder = Math.max(...currentItems.map((item) => item.display_order || 0), 0) + 1
 
@@ -917,6 +917,7 @@ export default function AdministratorPage() {
             display_order: nextOrder,
           }
 
+    // Primeiro, adiciona ao estado local para feedback imediato
     switch (type) {
       case "engines":
         setEnginePackages([...enginePackages, newItem])
@@ -936,6 +937,95 @@ export default function AdministratorPage() {
       case "dealers":
         setDealers([...dealers, newItem])
         break
+    }
+
+    // Agora salva automaticamente no banco de dados
+    try {
+      const response = await fetch("/api/save-admin-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          singleItem: {
+            type: type,
+            item: newItem
+          }
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success && result.savedItem) {
+        // Atualiza o estado com o item que tem ID real do banco
+        const itemWithId = result.savedItem
+        switch (type) {
+          case "engines":
+            setEnginePackages(prev => [...prev.slice(0, -1), itemWithId])
+            break
+          case "hulls":
+            setHullColors(prev => [...prev.slice(0, -1), itemWithId])
+            break
+          case "upholstery":
+            setUpholsteryPackages(prev => [...prev.slice(0, -1), itemWithId])
+            break
+          case "options":
+            setAdditionalOptions(prev => [...prev.slice(0, -1), itemWithId])
+            break
+          case "models":
+            setBoatModels(prev => [...prev.slice(0, -1), itemWithId])
+            break
+          case "dealers":
+            setDealers(prev => [...prev.slice(0, -1), itemWithId])
+            break
+        }
+        showNotification("✅ Nova linha adicionada e salva no banco!", "success")
+      } else {
+        showNotification("❌ Erro ao salvar nova linha: " + result.error, "error")
+        // Remove do estado local se falhou em salvar
+        switch (type) {
+          case "engines":
+            setEnginePackages(enginePackages)
+            break
+          case "hulls":
+            setHullColors(hullColors)
+            break
+          case "upholstery":
+            setUpholsteryPackages(upholsteryPackages)
+            break
+          case "options":
+            setAdditionalOptions(additionalOptions)
+            break
+          case "models":
+            setBoatModels(boatModels)
+            break
+          case "dealers":
+            setDealers(dealers)
+            break
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao salvar nova linha:", error)
+      showNotification("❌ Erro ao conectar com o banco", "error")
+      // Remove do estado local se falhou em salvar
+      switch (type) {
+        case "engines":
+          setEnginePackages(enginePackages)
+          break
+        case "hulls":
+          setHullColors(hullColors)
+          break
+        case "upholstery":
+          setUpholsteryPackages(upholsteryPackages)
+          break
+        case "options":
+          setAdditionalOptions(additionalOptions)
+          break
+        case "models":
+          setBoatModels(boatModels)
+          break
+        case "dealers":
+          setDealers(dealers)
+          break
+      }
     }
   }
 
