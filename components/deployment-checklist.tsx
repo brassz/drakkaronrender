@@ -272,10 +272,10 @@ export default function DeploymentChecklist() {
             </div>
 
             <button
-              onClick={() => window.open("https://render.com/", "_blank")}
+              onClick={() => window.open("https://vercel.com/new", "_blank")}
               className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-105 text-lg font-semibold shadow-lg"
             >
-              🚀 Fazer Deploy no Render Agora!
+              🚀 Fazer Deploy no Vercel Agora!
             </button>
           </div>
         </div>
@@ -350,7 +350,7 @@ export default function DeploymentChecklist() {
               3
             </span>
             <div>
-                              <div className="font-semibold">Deploy no Render</div>
+                              <div className="font-semibold">Deploy no Vercel</div>
               <div className="text-sm text-gray-600">Conecte seu repositório e configure as variáveis de ambiente</div>
             </div>
           </div>
