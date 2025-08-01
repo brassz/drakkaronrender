@@ -15,13 +15,25 @@ export async function GET() {
 
     if (error) {
       console.error("Error fetching factory production:", error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      const errorResponse = NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      errorResponse.headers.set('Pragma', 'no-cache')
+      errorResponse.headers.set('Expires', '0')
+      return errorResponse
     }
 
-    return NextResponse.json({ success: true, data: data || [] })
+    const response = NextResponse.json({ success: true, data: data || [] })
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    return response
   } catch (error) {
     console.error("Error in factory production GET:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    return errorResponse
   }
 }
 
@@ -39,13 +51,25 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("Error saving factory production:", error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      const errorResponse = NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      errorResponse.headers.set('Pragma', 'no-cache')
+      errorResponse.headers.set('Expires', '0')
+      return errorResponse
     }
 
-    return NextResponse.json({ success: true, data })
+    const response = NextResponse.json({ success: true, data })
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    return response
   } catch (error) {
     console.error("Error in factory production POST:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    return errorResponse
   }
 }
 
@@ -63,12 +87,24 @@ export async function DELETE(req: Request) {
 
     if (error) {
       console.error("Error deleting factory production:", error)
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      const errorResponse = NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      errorResponse.headers.set('Pragma', 'no-cache')
+      errorResponse.headers.set('Expires', '0')
+      return errorResponse
     }
 
-    return NextResponse.json({ success: true })
+    const response = NextResponse.json({ success: true })
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    return response
   } catch (error) {
     console.error("Error in factory production DELETE:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    return errorResponse
   }
 }

@@ -117,10 +117,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: result.error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, data: result.data?.[0] })
+    const response = NextResponse.json({ success: true, data: result.data?.[0] })
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    return response
   } catch (error) {
     console.error("Error in marketing content POST:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    const errorResponse = NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    errorResponse.headers.set('Pragma', 'no-cache')
+    errorResponse.headers.set('Expires', '0')
+    return errorResponse
   }
 }
 
