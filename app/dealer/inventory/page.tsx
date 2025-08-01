@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Notification, useNotification } from "@/components/notification"
+import { useRealtimeMultipleTables } from "@/hooks/useRealtimeData"
 
 interface BoatInventory {
   id?: number
@@ -261,6 +262,16 @@ export default function InventoryPage() {
     setLang(savedLang)
     loadData()
   }, [])
+
+  // Escutar mudanças em tempo real no inventário
+  useRealtimeMultipleTables(
+    ['dealer_inventory', 'boat_models', 'hull_colors', 'engine_packages'],
+    () => {
+      console.log('Realtime update detected in inventory, reloading...')
+      loadData()
+    },
+    true
+  )
 
   const loadData = async () => {
     try {

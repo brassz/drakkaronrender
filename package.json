@@ -6,7 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "check-realtime": "tsx scripts/check-realtime-setup.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.66",
