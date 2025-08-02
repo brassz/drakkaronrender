@@ -1,9 +1,17 @@
 import { DatabaseService } from "@/lib/database-service"
 import { NextResponse } from "next/server"
 import { revalidatePath, revalidateTag } from "next/cache"
+import { CACHE_CONFIG } from "@/lib/cache-config"
+
+// Force dynamic route
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function POST(req: Request) {
   try {
+    const timestamp = Date.now()
+    console.log(`[${timestamp}] Saving admin data...`)
+    
     const { enginePackages, hullColors, upholsteryPackages, additionalOptions, boatModels, dealers, orders, mode } =
       await req.json()
 
@@ -19,31 +27,46 @@ export async function POST(req: Request) {
 
       await Promise.all(promises)
       
+      console.log(`[${timestamp}] Admin data saved successfully`)
+      
       // Revalidate all paths and tags that might use this data
       revalidatePath('/dealer')
       revalidatePath('/dealer/inventory')
       revalidatePath('/dealer/after-sales') 
       revalidatePath('/administrator')
       revalidateTag('admin-data')
+      revalidateTag('dealer-data')
     }
 
-    const response = NextResponse.json({ success: true })
+    const response = NextResponse.json({ 
+      success: true,
+      timestamp,
+      message: "Data saved successfully"
+    })
     
-    // Add no-cache headers to ensure fresh data
-    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-    response.headers.set('Pragma', 'no-cache')
-    response.headers.set('Expires', '0')
+    // Apply all anti-cache headers
+    Object.entries(CACHE_CONFIG.NO_CACHE_HEADERS).forEach(([key, value]) => {
+      response.headers.set(key, value)
+    })
+    
+    // Additional cache busting headers
+    response.headers.set('X-Timestamp', timestamp.toString())
+    response.headers.set('X-Data-Updated', 'true')
     
     return response
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
     console.error("Save admin data error:", errorMessage)
-    const errorResponse = NextResponse.json({ success: false, error: errorMessage }, { status: 500 })
+    const errorResponse = NextResponse.json({ 
+      success: false, 
+      error: errorMessage,
+      timestamp: Date.now()
+    }, { status: 500 })
     
-    // Add no-cache headers to error responses too
-    errorResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-    errorResponse.headers.set('Pragma', 'no-cache')
-    errorResponse.headers.set('Expires', '0')
+    // Apply anti-cache headers to error responses too
+    Object.entries(CACHE_CONFIG.NO_CACHE_HEADERS).forEach(([key, value]) => {
+      errorResponse.headers.set(key, value)
+    })
     
     return errorResponse
   }

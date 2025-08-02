@@ -5,11 +5,26 @@ import { CACHE_CONFIG } from "@/lib/cache-config"
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
+// Force dynamic route
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET() {
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    // Clear any potential caches
+    const cacheBustingTimestamp = Date.now()
+    console.log(`[${cacheBustingTimestamp}] Loading fresh data from database`)
+    
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'X-Cache-Bust': cacheBustingTimestamp.toString()
+        }
+      }
+    })
 
-    // Helper function to safely query a table
+    // Helper function to safely query a table with cache busting
     const safeQuery = async (tableName: string, orderBy?: { column: string; ascending: boolean }) => {
       try {
         let query = supabase.from(tableName).select("*")
@@ -18,6 +33,7 @@ export async function GET() {
           query = query.order(orderBy.column, { ascending: orderBy.ascending })
         }
 
+        // Add cache busting parameter
         const { data, error } = await query
 
         if (error) {
@@ -25,6 +41,7 @@ export async function GET() {
           return []
         }
 
+        console.log(`[${cacheBustingTimestamp}] Loaded ${data?.length || 0} records from ${tableName}`)
         return data || []
       } catch (error) {
         console.error(`Exception querying ${tableName}:`, error)
@@ -61,6 +78,8 @@ export async function GET() {
       safeQuery("factory_production", { column: "display_order", ascending: true }),
     ])
 
+    console.log(`[${cacheBustingTimestamp}] All data loaded successfully`)
+
     // Clean up any potential JSON parsing issues in the data
     const cleanOrders = orders.map((order) => ({
       ...order,
@@ -79,6 +98,7 @@ export async function GET() {
 
     const response = NextResponse.json({
       success: true,
+      timestamp: cacheBustingTimestamp,
       data: {
         enginePackages,
         hullColors,
@@ -95,15 +115,24 @@ export async function GET() {
       },
     })
 
-    // Apply centralized no-cache headers
+    // Apply centralized no-cache headers with additional anti-cache measures
     Object.entries(CACHE_CONFIG.NO_CACHE_HEADERS).forEach(([key, value]) => {
       response.headers.set(key, value)
     })
+    
+    // Additional cache busting headers
+    response.headers.set('X-Timestamp', cacheBustingTimestamp.toString())
+    response.headers.set('X-Data-Fresh', 'true')
+    response.headers.set('X-Cache-Status', 'MISS')
 
     return response
   } catch (error) {
     console.error("Error in get-admin-data:", error)
-    const errorResponse = NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    const errorResponse = NextResponse.json({ 
+      success: false, 
+      error: "Internal server error",
+      timestamp: Date.now()
+    }, { status: 500 })
     
     // Apply centralized no-cache headers to error responses too
     Object.entries(CACHE_CONFIG.NO_CACHE_HEADERS).forEach(([key, value]) => {

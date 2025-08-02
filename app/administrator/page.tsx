@@ -833,8 +833,55 @@ export default function AdministratorPage() {
     const savedLang = localStorage.getItem("selectedLang") || "en"
     setLang(savedLang)
     if (isLoggedIn) {
+      // Clear caches and load fresh data
+      CACHE_CONFIG.clearAllCaches()
       loadDataFromDatabase()
       loadNotificationEmail()
+    }
+  }, [isLoggedIn])
+
+  // Add auto-refresh effect
+  useEffect(() => {
+    if (!isLoggedIn) return
+
+    // Auto-refresh data every 15 seconds
+    const refreshInterval = setInterval(() => {
+      console.log('Auto-refreshing admin data...')
+      loadDataFromDatabase()
+    }, 15000)
+
+    // Listen for visibility changes and focus events
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isLoggedIn) {
+        console.log('Page became visible, refreshing data...')
+        loadDataFromDatabase()
+      }
+    }
+
+    const handleFocus = () => {
+      if (isLoggedIn) {
+        console.log('Window focused, refreshing data...')
+        loadDataFromDatabase()
+      }
+    }
+
+    // Listen for storage events (cross-tab communication)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (Object.values(CACHE_CONFIG.STORAGE_EVENTS).includes(e.key as string)) {
+        console.log(`Data updated via storage event: ${e.key}, refreshing...`)
+        loadDataFromDatabase()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    window.addEventListener('storage', handleStorageChange)
+
+    return () => {
+      clearInterval(refreshInterval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('storage', handleStorageChange)
     }
   }, [isLoggedIn])
 
@@ -1106,7 +1153,12 @@ export default function AdministratorPage() {
 
       if (result.success) {
         showNotification("✅ Dados salvos no banco de dados com sucesso! Todas as páginas do sistema foram atualizadas em tempo real.", "success")
-        // Reload data from database to get the IDs of newly created items
+        
+        // Trigger update event for cross-tab communication
+        triggerDataUpdate('ADMIN_DATA_UPDATED')
+        
+        // Clear all caches and reload data from database
+        CACHE_CONFIG.clearAllCaches()
         await loadDataFromDatabase()
         
         // Force browser cache refresh for immediate sync
@@ -1924,7 +1976,10 @@ export default function AdministratorPage() {
         // Add this to the loadDataFromDatabase function
         setFactoryProduction(data.factoryProduction || [])
 
-        showNotification("✅ Dados carregados do banco de dados!", "success")
+        showNotification(`✅ Dados carregados do banco de dados! (${new Date(result.timestamp).toLocaleTimeString()})`, "success")
+        
+        // Trigger update event for cross-tab communication
+        triggerDataUpdate('ADMIN_DATA_UPDATED')
       } else {
         showNotification(`❌ Erro ao carregar dados: ${result.error}`, "error")
       }
@@ -1934,6 +1989,13 @@ export default function AdministratorPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const forceRefreshData = async () => {
+    // Clear all caches and force reload
+    CACHE_CONFIG.clearAllCaches()
+    await loadDataFromDatabase()
+    showNotification("🔄 Dados atualizados manualmente!", "success")
   }
 
   const handleLogout = () => {
@@ -2235,6 +2297,13 @@ export default function AdministratorPage() {
               className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium flex items-center gap-2"
             >
               📧 {currentNotificationEmail ? "Editar Email" : "Adicionar Email"}
+            </button>
+            <button
+              onClick={forceRefreshData}
+              disabled={isLoading}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              🔄 {isLoading ? "Atualizando..." : "Refresh"}
             </button>
             <button
               onClick={handleLogout}
