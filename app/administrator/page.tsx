@@ -840,48 +840,51 @@ export default function AdministratorPage() {
     }
   }, [isLoggedIn])
 
-  // Add auto-refresh effect
+  // Add controlled refresh effect - only when needed
   useEffect(() => {
     if (!isLoggedIn) return
 
-    // Auto-refresh data every 15 seconds
+    let lastRefreshTime = Date.now()
+    const MIN_REFRESH_INTERVAL = 30000 // 30 seconds minimum between refreshes
+
+    const shouldRefresh = () => {
+      const now = Date.now()
+      if (now - lastRefreshTime < MIN_REFRESH_INTERVAL) {
+        console.log('Skipping refresh - too soon since last refresh')
+        return false
+      }
+      lastRefreshTime = now
+      return true
+    }
+
+    // Auto-refresh data every 2 minutes (much less aggressive)
     const refreshInterval = setInterval(() => {
-      console.log('Auto-refreshing admin data...')
-      loadDataFromDatabase()
-    }, 15000)
+      if (shouldRefresh()) {
+        console.log('Auto-refreshing admin data...')
+        loadDataFromDatabase()
+      }
+    }, 120000) // 2 minutes instead of 15 seconds
 
-    // Listen for visibility changes and focus events
+    // Listen for visibility changes (only when coming back from hidden)
+    let wasHidden = false
     const handleVisibilityChange = () => {
-      if (!document.hidden && isLoggedIn) {
-        console.log('Page became visible, refreshing data...')
+      if (document.hidden) {
+        wasHidden = true
+      } else if (wasHidden && isLoggedIn && shouldRefresh()) {
+        console.log('Page became visible after being hidden, refreshing data...')
         loadDataFromDatabase()
+        wasHidden = false
       }
     }
 
-    const handleFocus = () => {
-      if (isLoggedIn) {
-        console.log('Window focused, refreshing data...')
-        loadDataFromDatabase()
-      }
-    }
-
-    // Listen for storage events (cross-tab communication)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (Object.values(CACHE_CONFIG.STORAGE_EVENTS).includes(e.key as string)) {
-        console.log(`Data updated via storage event: ${e.key}, refreshing...`)
-        loadDataFromDatabase()
-      }
-    }
+    // Remove focus listener as it's too aggressive
+    // Remove storage listener to prevent cross-tab refresh loops
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', handleFocus)
-    window.addEventListener('storage', handleStorageChange)
 
     return () => {
       clearInterval(refreshInterval)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleFocus)
-      window.removeEventListener('storage', handleStorageChange)
     }
   }, [isLoggedIn])
 
@@ -1978,8 +1981,8 @@ export default function AdministratorPage() {
 
         showNotification(`✅ Dados carregados do banco de dados! (${new Date(result.timestamp).toLocaleTimeString()})`, "success")
         
-        // Trigger update event for cross-tab communication
-        triggerDataUpdate('ADMIN_DATA_UPDATED')
+        // Remove automatic trigger to prevent refresh loops
+        // triggerDataUpdate('ADMIN_DATA_UPDATED')
       } else {
         showNotification(`❌ Erro ao carregar dados: ${result.error}`, "error")
       }
@@ -2230,11 +2233,11 @@ export default function AdministratorPage() {
     }
   }
 
-  // Add this useEffect after the existing ones
+  // Add this useEffect after the existing ones - with controlled refresh
   useEffect(() => {
     if (isLoggedIn && activeTab === "factory") {
-      // Refresh factory production data every 30 seconds when on factory tab
-      const interval = setInterval(refreshFactoryProduction, 30000)
+      // Refresh factory production data every 2 minutes when on factory tab
+      const interval = setInterval(refreshFactoryProduction, 120000) // 2 minutes instead of 30 seconds
       return () => clearInterval(interval)
     }
   }, [isLoggedIn, activeTab])
