@@ -20,11 +20,22 @@ export async function POST(req: Request) {
       await Promise.all(promises)
       
       // Revalidate all paths and tags that might use this data
-      revalidatePath('/dealer')
-      revalidatePath('/dealer/inventory')
-      revalidatePath('/dealer/after-sales') 
-      revalidatePath('/administrator')
+      revalidatePath('/', 'layout')
+      revalidatePath('/dealer', 'layout')
+      revalidatePath('/dealer/new-boat', 'page')
+      revalidatePath('/dealer/inventory', 'page')
+      revalidatePath('/dealer/after-sales', 'page')
+      revalidatePath('/dealer/marketing', 'page')
+      revalidatePath('/dealer/quotes', 'page')
+      revalidatePath('/dealer/sales', 'page')
+      revalidatePath('/dealer/track-orders', 'page')
+      revalidatePath('/administrator', 'page')
+      
+      // Revalidate tags
       revalidateTag('admin-data')
+      revalidateTag('dealer-config')
+      revalidateTag('inventory')
+      revalidateTag('orders')
     }
 
     const response = NextResponse.json({ success: true })
