@@ -278,11 +278,19 @@ export default function InventoryPage() {
       }
     }
     
+    // Listen for custom events from the same page
+    const handleCustomEvent = (e: CustomEvent) => {
+      console.log(`Data updated via custom event: ${e.type}, refreshing config...`)
+      loadConfig()
+    }
+    
     window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('dataUpdated', handleCustomEvent as EventListener)
     
     return () => {
       clearInterval(refreshInterval)
       window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('dataUpdated', handleCustomEvent as EventListener)
     }
   }, [])
 

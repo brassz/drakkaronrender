@@ -1106,20 +1106,15 @@ export default function AdministratorPage() {
 
       if (result.success) {
         showNotification("✅ Dados salvos no banco de dados com sucesso! Todas as páginas do sistema foram atualizadas em tempo real.", "success")
+        
+        // Trigger storage events to notify other tabs/windows BEFORE reloading
+        triggerDataUpdate('ADMIN_DATA_UPDATED')
+        
         // Reload data from database to get the IDs of newly created items
         await loadDataFromDatabase()
         
-        // Force browser cache refresh for immediate sync
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-              registration.update();
-            }
-          });
-        }
-        
-        // Trigger storage events to notify other tabs/windows
-        triggerDataUpdate('ADMIN_DATA_UPDATED')
+        // Additional notification for all pages to refresh their data
+        triggerDataUpdate('DATA_REFRESH_NEEDED')
         
       } else {
         showNotification("❌ Erro ao salvar: " + result.error, "error")
