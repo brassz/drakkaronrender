@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Notification, useNotification } from "@/components/notification"
+import { fetchNoCache } from "@/lib/fetch-utils"
 
 // Route segment configuration to disable static generation
 export const dynamic = 'force-dynamic'
@@ -268,6 +269,35 @@ export default function NewBoatPage() {
     const savedLang = localStorage.getItem("selectedLang") || "pt"
     setLang(savedLang)
     loadDealerConfig()
+    
+    // Auto-refresh every 30 seconds
+    const refreshInterval = setInterval(() => {
+      loadDealerConfig()
+    }, 30000)
+    
+    // Listen for storage events to sync across tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'admin-data-updated' || e.key === 'dealer-config-updated') {
+        console.log('Data updated in another tab, refreshing...')
+        loadDealerConfig()
+      }
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
+    // Listen for custom events
+    const handleDataUpdate = () => {
+      console.log('Data update event received, refreshing...')
+      loadDealerConfig()
+    }
+    
+    window.addEventListener('admin-data-updated', handleDataUpdate)
+    
+    return () => {
+      clearInterval(refreshInterval)
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('admin-data-updated', handleDataUpdate)
+    }
   }, [])
 
   useEffect(() => {
@@ -334,7 +364,7 @@ export default function NewBoatPage() {
   const loadDealerConfig = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/get-dealer-config")
+      const response = await fetchNoCache('/api/get-dealer-config')
       const result = await response.json()
 
       if (result.success) {
