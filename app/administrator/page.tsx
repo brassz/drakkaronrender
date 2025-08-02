@@ -180,6 +180,7 @@ export default function AdministratorPage() {
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const loadDataTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const statusOptions = [
     { value: "pending", label: "Pendente" },
@@ -844,32 +845,38 @@ export default function AdministratorPage() {
   useEffect(() => {
     if (!isLoggedIn) return
 
-    // Auto-refresh data every 15 seconds
+    // Auto-refresh data every 30 seconds (increased from 15s)
     const refreshInterval = setInterval(() => {
-      console.log('Auto-refreshing admin data...')
-      loadDataFromDatabase()
-    }, 15000)
+      // Only refresh if not already loading
+      if (!isLoading) {
+        console.log('Auto-refreshing admin data...')
+        loadDataFromDatabase()
+      }
+    }, 30000)
 
     // Listen for visibility changes and focus events
     const handleVisibilityChange = () => {
-      if (!document.hidden && isLoggedIn) {
+      if (!document.hidden && isLoggedIn && !isLoading) {
         console.log('Page became visible, refreshing data...')
-        loadDataFromDatabase()
+        debouncedLoadData()
       }
     }
 
     const handleFocus = () => {
-      if (isLoggedIn) {
+      if (isLoggedIn && !isLoading) {
         console.log('Window focused, refreshing data...')
-        loadDataFromDatabase()
+        debouncedLoadData()
       }
     }
 
     // Listen for storage events (cross-tab communication)
     const handleStorageChange = (e: StorageEvent) => {
+      // Only refresh if the event came from another tab/window
+      if (e.storageArea !== window.localStorage) return
+      
       if (Object.values(CACHE_CONFIG.STORAGE_EVENTS).includes(e.key as string)) {
         console.log(`Data updated via storage event: ${e.key}, refreshing...`)
-        loadDataFromDatabase()
+        debouncedLoadData()
       }
     }
 
@@ -882,8 +889,12 @@ export default function AdministratorPage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handleFocus)
       window.removeEventListener('storage', handleStorageChange)
+      // Clear any pending debounced calls
+      if (loadDataTimeoutRef.current) {
+        clearTimeout(loadDataTimeoutRef.current)
+      }
     }
-  }, [isLoggedIn])
+  }, [isLoggedIn, isLoading, debouncedLoadData])
 
   const handleLogin = async () => {
     try {
@@ -1154,8 +1165,8 @@ export default function AdministratorPage() {
       if (result.success) {
         showNotification("✅ Dados salvos no banco de dados com sucesso! Todas as páginas do sistema foram atualizadas em tempo real.", "success")
         
-        // Trigger update event for cross-tab communication
-        triggerDataUpdate('ADMIN_DATA_UPDATED')
+        // Temporarily disabled to prevent infinite loops
+        // triggerDataUpdate('ADMIN_DATA_UPDATED')
         
         // Clear all caches and reload data from database
         CACHE_CONFIG.clearAllCaches()
@@ -1170,8 +1181,8 @@ export default function AdministratorPage() {
           });
         }
         
-        // Trigger storage events to notify other tabs/windows
-        triggerDataUpdate('ADMIN_DATA_UPDATED')
+        // Temporarily disabled to prevent infinite loops
+        // triggerDataUpdate('ADMIN_DATA_UPDATED')
         
       } else {
         showNotification("❌ Erro ao salvar: " + result.error, "error")
@@ -1978,8 +1989,8 @@ export default function AdministratorPage() {
 
         showNotification(`✅ Dados carregados do banco de dados! (${new Date(result.timestamp).toLocaleTimeString()})`, "success")
         
-        // Trigger update event for cross-tab communication
-        triggerDataUpdate('ADMIN_DATA_UPDATED')
+        // Temporarily disabled to prevent infinite loops
+        // triggerDataUpdate('ADMIN_DATA_UPDATED')
       } else {
         showNotification(`❌ Erro ao carregar dados: ${result.error}`, "error")
       }
@@ -1989,6 +2000,21 @@ export default function AdministratorPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Debounced version of loadDataFromDatabase to prevent multiple simultaneous calls
+  const debouncedLoadData = () => {
+    // Clear any existing timeout
+    if (loadDataTimeoutRef.current) {
+      clearTimeout(loadDataTimeoutRef.current)
+    }
+    
+    // Set a new timeout
+    loadDataTimeoutRef.current = setTimeout(() => {
+      if (!isLoading) {
+        loadDataFromDatabase()
+      }
+    }, 100) // 100ms debounce
   }
 
   const forceRefreshData = async () => {
