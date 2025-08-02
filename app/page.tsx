@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useClientStorage } from "@/hooks/use-client-storage"
 
 export default function HomePage() {
-  const [selectedLang, setSelectedLang] = useState<string>("pt")
+  const { value: selectedLang, setValue: setSelectedLang } = useClientStorage("selectedLang", "pt")
   const [showDealer, setShowDealer] = useState(false)
 
   const pageContent = {
@@ -29,15 +30,9 @@ export default function HomePage() {
     },
   }
 
-  useEffect(() => {
-    const savedLang = localStorage.getItem("selectedLang") || "pt"
-    setSelectedLang(savedLang)
-  }, [])
-
   const handleFlagClick = (lang: string) => {
     setSelectedLang(lang)
     setShowDealer(true)
-    localStorage.setItem("selectedLang", lang)
   }
 
   return (
