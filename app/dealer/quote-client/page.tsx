@@ -433,6 +433,34 @@ export default function QuoteClientPage() {
     setLang(savedLang)
     loadDealerConfig()
     loadQuotes()
+    
+    // Set up auto-refresh to get updated data every 30 seconds
+    const refreshInterval = setInterval(() => {
+      loadDealerConfig() // Refresh dealer config data
+    }, 30000) // 30 seconds
+    
+    // Listen for admin data updates from other tabs/admin panel
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'admin-data-updated' || e.key === 'data-refresh-needed') {
+        console.log(`Data updated via storage event: ${e.key}, refreshing config...`)
+        loadDealerConfig()
+      }
+    }
+    
+    // Listen for custom events from the same page
+    const handleCustomEvent = (e: CustomEvent) => {
+      console.log(`Data updated via custom event: ${e.type}, refreshing config...`)
+      loadDealerConfig()
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('dataUpdated', handleCustomEvent as EventListener)
+    
+    return () => {
+      clearInterval(refreshInterval)
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('dataUpdated', handleCustomEvent as EventListener)
+    }
   }, [])
 
   useEffect(() => {
@@ -507,8 +535,15 @@ export default function QuoteClientPage() {
       }
 
       // Sempre passar dealer_id para obter preços MSRP específicos do dealer
-      const url = `/api/get-dealer-config?dealer_id=${dealerId}`
-      const response = await fetch(url)
+      const url = `/api/get-dealer-config?dealer_id=${dealerId}&_t=${Date.now()}`
+      const response = await fetch(url, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       const result = await response.json()
 
       if (result.success) {

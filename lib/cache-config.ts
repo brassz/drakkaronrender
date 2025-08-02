@@ -47,7 +47,8 @@ export const CACHE_CONFIG = {
   STORAGE_EVENTS: {
     ADMIN_DATA_UPDATED: 'admin-data-updated',
     ORDER_CREATED: 'order-created',
-    INVENTORY_UPDATED: 'inventory-updated'
+    INVENTORY_UPDATED: 'inventory-updated',
+    DATA_REFRESH_NEEDED: 'data-refresh-needed'
   }
 }
 
@@ -63,20 +64,46 @@ export const useAutoRefresh = (refreshFunction: () => void, interval: number = 3
       }
     }
     
+    // Also listen for custom events
+    const handleCustomEvent = (e: CustomEvent) => {
+      console.log(`Data updated via custom event: ${e.type}, refreshing...`)
+      refreshFunction()
+    }
+    
     window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('dataUpdated', handleCustomEvent as EventListener)
     
     return () => {
       clearInterval(refreshInterval)
       window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('dataUpdated', handleCustomEvent as EventListener)
     }
   }
 }
 
-// Função para disparar evento de atualização
+// Função para disparar evento de atualização melhorada
 export const triggerDataUpdate = (eventType: keyof typeof CACHE_CONFIG.STORAGE_EVENTS) => {
   const event = CACHE_CONFIG.STORAGE_EVENTS[eventType]
-  window.dispatchEvent(new StorageEvent('storage', {
-    key: event,
-    newValue: Date.now().toString()
+  
+  // Dispara evento de storage para tabs/windows diferentes
+  localStorage.setItem(event, Date.now().toString())
+  setTimeout(() => localStorage.removeItem(event), 100)
+  
+  // Dispara evento customizado para a mesma página
+  window.dispatchEvent(new CustomEvent('dataUpdated', {
+    detail: { eventType, timestamp: Date.now() }
   }))
+  
+  console.log(`Triggered data update event: ${eventType}`)
+}
+
+// Função para forçar refresh completo de todas as páginas
+export const forcePageRefresh = () => {
+  // Notifica todas as páginas para recarregar
+  triggerDataUpdate('DATA_REFRESH_NEEDED')
+  
+  // Força reload da página atual após um pequeno delay
+  setTimeout(() => {
+    window.location.reload()
+  }, 500)
 }
