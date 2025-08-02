@@ -831,8 +831,10 @@ export default function AdministratorPage() {
   }
 
   useEffect(() => {
-    const savedLang = localStorage.getItem("selectedLang") || "en"
-    setLang(savedLang)
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem("selectedLang") || "en"
+      setLang(savedLang)
+    }
     if (isLoggedIn) {
       // Clear caches and load fresh data
       CACHE_CONFIG.clearAllCaches()
@@ -2027,7 +2029,9 @@ export default function AdministratorPage() {
   const handleLogout = () => {
     setIsLoggedIn(false)
     setPassword("")
-    window.location.href = "/"
+    if (typeof window !== 'undefined') {
+      window.location.href = "/"
+    }
   }
 
   const updateMarketingContent = (index: number, field: keyof MarketingContent, value: string) => {

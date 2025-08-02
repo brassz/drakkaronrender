@@ -7,6 +7,7 @@ import Link from "next/link"
 export default function HomePage() {
   const [selectedLang, setSelectedLang] = useState<string>("pt")
   const [showDealer, setShowDealer] = useState(false)
+  const [isClient, setIsClient] = useState(false)
 
   const pageContent = {
     pt: {
@@ -30,14 +31,85 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    const savedLang = localStorage.getItem("selectedLang") || "pt"
-    setSelectedLang(savedLang)
+    // Mark as client-side and safely access localStorage
+    setIsClient(true)
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem("selectedLang") || "pt"
+      setSelectedLang(savedLang)
+    }
   }, [])
 
   const handleFlagClick = (lang: string) => {
     setSelectedLang(lang)
     setShowDealer(true)
-    localStorage.setItem("selectedLang", lang)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("selectedLang", lang)
+    }
+  }
+
+  // Don't render content until we're on the client side to prevent hydration mismatch
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex flex-col items-center bg-gray-100">
+        <header className="bg-blue-900 text-white p-5 text-center w-full">
+          <Image src="/images/logohome.png" alt="Drakkar Boats Logo" width={300} height={80} className="mx-auto" />
+        </header>
+
+        <main className="p-15 my-12 text-center w-4/5 max-w-4xl">
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+            Portal Dealer
+          </h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Clique em seu país para entrar no portal
+          </p>
+
+          <div className="flex justify-center gap-8 mt-8 flex-wrap">
+            <Image
+              src="/images/estadosunidos.png"
+              alt="United States Flag"
+              width={150}
+              height={100}
+              className="cursor-pointer border-2 border-transparent hover:border-blue-500 transition-colors"
+            />
+            <Image
+              src="/images/brasil.png"
+              alt="Brazil Flag"
+              width={150}
+              height={100}
+              className="cursor-pointer border-2 border-transparent hover:border-blue-500 transition-colors"
+            />
+            <Image
+              src="/images/espanha.jpg"
+              alt="Spain Flag"
+              width={150}
+              height={100}
+              className="cursor-pointer border-2 border-transparent hover:border-blue-500 transition-colors"
+            />
+            <Image
+              src="/images/australia.png"
+              alt="Australia Flag"
+              width={150}
+              height={100}
+              className="cursor-pointer border-2 border-transparent hover:border-blue-500 transition-colors"
+            />
+          </div>
+        </main>
+
+        <footer className="bg-gray-100 text-gray-800 p-5 text-center w-full mt-auto">
+          <Link href="/administrator">
+            <Image
+              src="/images/favicon-32x32.png"
+              alt="Admin Access"
+              width={32}
+              height={32}
+              className="mx-auto mb-5 cursor-pointer hover:opacity-80 transition-opacity"
+            />
+          </Link>
+          <p className="font-semibold">Legacy of the Vikings</p>
+          <p>Shipyard of Fiber Boats & Br Tecnologia Náutica</p>
+        </footer>
+      </div>
+    )
   }
 
   return (
